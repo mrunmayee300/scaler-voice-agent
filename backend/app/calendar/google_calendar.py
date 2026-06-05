@@ -8,6 +8,7 @@ from app.config import get_settings
 from app.core.logging import get_logger
 from app.core.observability import get_metrics
 from app.models.schemas import BookMeetingResponse, CalendarSlot, TimePreferenceWindow
+from app.notifications.email import send_booking_confirmation_emails
 
 logger = get_logger(__name__)
 
@@ -369,13 +370,32 @@ async def book_meeting(
         )
 
         get_metrics().calendar_bookings += 1
+        formatted_time = local_start.strftime("%A %B %d at %I:%M %p %Z")
+
+        attendee_emailed, candidate_emailed = await send_booking_confirmation_emails(
+            attendee_name=attendee_name,
+            attendee_email=attendee_email,
+            formatted_time=formatted_time,
+            notes=notes,
+        )
+
+        email_note = ""
+        if attendee_emailed and candidate_emailed:
+            email_note = (
+                f" Confirmation emails were sent to {attendee_email} "
+                f"and {settings.candidate_email}."
+            )
+        elif attendee_emailed:
+            email_note = f" A confirmation email was sent to {attendee_email}."
+        elif settings.smtp_enabled:
+            email_note = " Calendar saved, but confirmation emails could not be sent."
+
         return BookMeetingResponse(
             success=True,
             event_id=created.get("id"),
             message=(
-                f"Interview booked with {attendee_name} on "
-                f"{local_start.strftime('%A %B %d at %I:%M %p %Z')}. "
-                f"{settings.candidate_name} will follow up at {attendee_email}."
+                f"Interview booked with {attendee_name} on {formatted_time}."
+                f"{email_note}"
             ),
             start_time=start_dt.isoformat(),
             end_time=end_dt.isoformat(),
