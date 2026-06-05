@@ -206,6 +206,7 @@ Use `requirements-core.txt` on Render (no heavy ML reranker).
 | Render asks for paid plan | Pick **Free** instance on **Hobby** workspace |
 | `pydantic-core` / maturin / Rust build failed | Use **Docker** deploy OR set `PYTHON_VERSION=3.11.9` |
 | Build uses Python 3.14 | Render default since Feb 2026 — must pin 3.11 |
+| Vercel build OK but **404 NOT_FOUND** | Root Directory = `frontend`; **clear** custom Output Directory; redeploy |
 | CORS error | Add exact Vercel URL to `BACKEND_CORS_ORIGINS` |
 | Qdrant unhealthy | Check URL/key; re-run `build_index.py` |
 | Calendar fails | Secret file path + calendar shared with service account |
