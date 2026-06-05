@@ -387,8 +387,13 @@ async def book_meeting(
             )
         elif attendee_emailed:
             email_note = f" A confirmation email was sent to {attendee_email}."
-        elif settings.smtp_enabled:
-            email_note = " Calendar saved, but confirmation emails could not be sent."
+        elif not settings.smtp_enabled:
+            email_note = " (Email notifications disabled — set SMTP_ENABLED=true on the server.)"
+        else:
+            email_note = (
+                " Calendar saved, but confirmation emails failed. "
+                "Check SMTP_PASSWORD is a valid Gmail App Password."
+            )
 
         return BookMeetingResponse(
             success=True,

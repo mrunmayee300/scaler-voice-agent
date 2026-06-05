@@ -87,13 +87,18 @@ class Settings(BaseSettings):
     vapi_assistant_id: str = Field(default="", alias="VAPI_ASSISTANT_ID")
     vapi_webhook_secret: str = Field(default="", alias="VAPI_WEBHOOK_SECRET")
 
-    # Email (SMTP — Gmail app password recommended)
+    # Email — Gmail API (recommended on Render), Resend, or SMTP
     smtp_enabled: bool = Field(default=False, alias="SMTP_ENABLED")
     smtp_host: str = Field(default="smtp.gmail.com", alias="SMTP_HOST")
     smtp_port: int = Field(default=587, alias="SMTP_PORT")
+    smtp_use_ssl: bool = Field(default=False, alias="SMTP_USE_SSL")
     smtp_user: str = Field(default="", alias="SMTP_USER")
     smtp_password: str = Field(default="", alias="SMTP_PASSWORD")
     smtp_from_email: str = Field(default="", alias="SMTP_FROM_EMAIL")
+    gmail_refresh_token: str = Field(default="", alias="GMAIL_REFRESH_TOKEN")
+    google_oauth_client_id: str = Field(default="", alias="GOOGLE_OAUTH_CLIENT_ID")
+    google_oauth_client_secret: str = Field(default="", alias="GOOGLE_OAUTH_CLIENT_SECRET")
+    resend_api_key: str = Field(default="", alias="RESEND_API_KEY")
 
     # Google Calendar
     google_calendar_id: str = Field(default="primary", alias="GOOGLE_CALENDAR_ID")
