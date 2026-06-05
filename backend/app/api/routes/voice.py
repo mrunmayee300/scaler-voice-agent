@@ -56,5 +56,6 @@ async def vapi_client_config():
         "publicKey": settings.vapi_public_key,
         "assistantId": settings.vapi_assistant_id,
         "candidateName": settings.candidate_name,
+        "phoneNumber": settings.vapi_phone_number,
         "configured": bool(settings.vapi_public_key and settings.vapi_assistant_id),
     }

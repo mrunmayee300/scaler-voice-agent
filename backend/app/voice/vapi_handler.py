@@ -2,6 +2,7 @@
 
 import json
 from typing import Any, Dict, List
+from zoneinfo import ZoneInfo
 
 from app.calendar.google_calendar import (
     book_meeting,
@@ -105,33 +106,36 @@ async def execute_tool(name: str, arguments: Dict[str, Any]) -> str:
     """Execute a Vapi tool call and return result string."""
     try:
         if name == "get_available_slots":
+            settings = get_settings()
+            tz = arguments.get("timezone") or settings.candidate_timezone
             slots = await get_available_slots(
-                arguments["start_date"],
-                arguments["end_date"],
-                arguments.get("timezone", "UTC"),
+                arguments.get("start_date", ""),
+                arguments.get("end_date", ""),
+                tz,
             )
             if not slots:
-                settings = get_settings()
                 if not settings.resolved_google_credentials_path.exists():
                     return (
                         "Interview scheduling isn't set up yet. "
                         "Please contact me by email to arrange a meeting."
                     )
                 return "No available slots found in that range. Please try different dates."
+            slot_tz = ZoneInfo(tz)
             formatted = [
-                f"{s.start.astimezone().strftime('%A %B %d at %I:%M %p')} to "
-                f"{s.end.astimezone().strftime('%I:%M %p')}"
+                f"{s.start.astimezone(slot_tz).strftime('%A %B %d at %I:%M %p %Z')} to "
+                f"{s.end.astimezone(slot_tz).strftime('%I:%M %p')}"
                 for s in slots[:5]
             ]
             return "Available slots:\n" + "\n".join(formatted)
 
         elif name == "book_meeting":
+            settings = get_settings()
             result = await book_meeting(
                 start_time=arguments["start_time"],
                 attendee_email=arguments["attendee_email"],
                 attendee_name=arguments["attendee_name"],
                 notes=arguments.get("notes"),
-                tz_name=arguments.get("timezone", "UTC"),
+                tz_name=arguments.get("timezone") or settings.candidate_timezone,
             )
             return result.message
 

@@ -8,7 +8,7 @@ from app.config import get_settings
 from app.core.logging import get_logger
 from app.core.observability import get_metrics
 from app.models.schemas import BookMeetingResponse, CalendarSlot, TimePreferenceWindow
-from app.notifications.email import send_booking_confirmation_emails
+from app.notifications.email import is_email_configured, send_booking_confirmation_emails
 
 logger = get_logger(__name__)
 
@@ -387,12 +387,15 @@ async def book_meeting(
             )
         elif attendee_emailed:
             email_note = f" A confirmation email was sent to {attendee_email}."
-        elif not settings.smtp_enabled:
-            email_note = " (Email notifications disabled — set SMTP_ENABLED=true on the server.)"
+        elif not is_email_configured():
+            email_note = (
+                " (Email notifications not configured — set GMAIL_REFRESH_TOKEN, "
+                "RESEND_API_KEY, or SMTP credentials on the server.)"
+            )
         else:
             email_note = (
                 " Calendar saved, but confirmation emails failed. "
-                "Check SMTP_PASSWORD is a valid Gmail App Password."
+                "Check email credentials on the server."
             )
 
         return BookMeetingResponse(

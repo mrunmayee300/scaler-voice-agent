@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiFetch } from "./backend";
 
 export interface Citation {
   source: string;
@@ -25,7 +25,7 @@ export async function sendMessage(
   message: string,
   conversationId?: string
 ): Promise<ChatResponse> {
-  const res = await fetch(`${API_URL}/api/chat`, {
+  const res = await apiFetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, conversation_id: conversationId }),
@@ -42,7 +42,7 @@ export async function streamMessage(
   onDone: (data: { conversation_id: string; confidence: number }) => void,
   onError: (error: string) => void
 ): Promise<void> {
-  const res = await fetch(`${API_URL}/api/chat/stream`, {
+  const res = await apiFetch("/api/chat/stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, conversation_id: conversationId }),
@@ -99,7 +99,7 @@ export async function getAvailableSlots(
     | { start_date: string; end_date: string; timezone: string; windows?: never }
     | { timezone: string; windows: TimePreferenceWindow[]; start_date?: string; end_date?: string }
 ): Promise<SlotsResponse> {
-  const res = await fetch(`${API_URL}/api/calendar/slots`, {
+  const res = await apiFetch("/api/calendar/slots", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -120,7 +120,7 @@ export async function bookMeeting(data: {
   notes?: string;
   timezone: string;
 }) {
-  const res = await fetch(`${API_URL}/api/calendar/book`, {
+  const res = await apiFetch("/api/calendar/book", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

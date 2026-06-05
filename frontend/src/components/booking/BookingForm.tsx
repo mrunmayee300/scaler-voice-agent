@@ -24,7 +24,10 @@ type PreferenceWindow = {
 type Slot = { start: string; end: string; available: boolean };
 
 function formatDateInput(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function nextWeekday(offset: number): string {
@@ -165,8 +168,12 @@ export function BookingForm() {
       } else {
         setMessage(`${found.length} available slot${found.length === 1 ? "" : "s"} found.`);
       }
-    } catch {
-      setMessage("Failed to fetch availability. Please try again.");
+    } catch (e) {
+      const hint =
+        e instanceof Error && e.name === "AbortError"
+          ? "Server is waking up — wait a moment and try again."
+          : "Failed to fetch availability. Please try again.";
+      setMessage(hint);
     } finally {
       setLoading(false);
     }

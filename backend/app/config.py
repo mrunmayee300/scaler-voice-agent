@@ -4,7 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # backend/app/config.py → parents[1]=backend, parents[2]=project root
@@ -86,6 +86,7 @@ class Settings(BaseSettings):
     vapi_public_key: str = Field(default="", alias="VAPI_PUBLIC_KEY")
     vapi_assistant_id: str = Field(default="", alias="VAPI_ASSISTANT_ID")
     vapi_webhook_secret: str = Field(default="", alias="VAPI_WEBHOOK_SECRET")
+    vapi_phone_number: str = Field(default="", alias="VAPI_PHONE_NUMBER")
 
     # Email — Gmail API (recommended on Render), Resend, or SMTP
     smtp_enabled: bool = Field(default=False, alias="SMTP_ENABLED")
@@ -128,6 +129,11 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     environment: str = Field(default="development", alias="ENVIRONMENT")
+
+    @field_validator("candidate_name", mode="before")
+    @classmethod
+    def strip_candidate_name(cls, v: object) -> object:
+        return v.strip() if isinstance(v, str) else v
 
     @property
     def resolved_database_url(self) -> str:

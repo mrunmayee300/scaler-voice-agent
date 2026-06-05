@@ -36,6 +36,10 @@ def _resend_configured() -> bool:
     return bool(s.resend_api_key and s.smtp_from_email)
 
 
+def is_email_configured() -> bool:
+    return _gmail_api_configured() or _resend_configured() or _smtp_configured()
+
+
 def _smtp_configured() -> bool:
     s = get_settings()
     if not s.smtp_enabled:

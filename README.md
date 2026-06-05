@@ -14,15 +14,84 @@ A production-grade AI representative that answers questions **only from verified
 
 ## Architecture
 
-```
-User → Chat UI / Voice (Vapi) → FastAPI → Security → RAG → Grounding → GPT-4o
-                                      ↓
-                              Google Calendar (booking)
-                                      ↓
-                                   Qdrant
+```mermaid
+flowchart TB
+    subgraph Users["Users"]
+        Browser[Browser — Chat + Voice UI]
+        Phone[Phone — Inbound Call]
+    end
+
+    subgraph Frontend["Vercel"]
+        NextJS[Next.js 15 App]
+    end
+
+    subgraph Voice["Vapi"]
+        VapiSDK[Web SDK — Deepgram STT · ElevenLabs TTS]
+        VapiTel[Telephony — US Number]
+    end
+
+    subgraph Backend["Render — FastAPI"]
+        Security[Security — Injection Filter]
+        ChatAPI[Chat API — SSE Stream]
+        VoiceWH[Voice Webhook — 5 Tools]
+        CalAPI[Calendar API]
+        ChatSvc[Chat Service]
+        RAG[RAG Pipeline]
+        Ground[Grounding — Confidence Gate]
+    end
+
+    subgraph Retrieval["Hybrid Retrieval"]
+        Vector[Vector Search]
+        BM25[BM25 Keyword]
+        RRF[RRF Fusion]
+    end
+
+    subgraph Data["Data & External APIs"]
+        Qdrant[(Qdrant Cloud — 4 Collections)]
+        SQLite[(SQLite — Conversations)]
+        OpenAI[OpenAI — GPT-4o + Embeddings]
+        GCal[Google Calendar]
+    end
+
+    subgraph Ingestion["Ingestion Pipeline"]
+        Resume[resume.pdf]
+        GitHub[GitHub READMEs · Commits · Projects]
+        BuildIndex[build_index.py]
+    end
+
+    Browser --> NextJS
+    NextJS -->|REST / SSE| Security
+    Browser --> VapiSDK
+    Phone --> VapiTel
+    VapiSDK --> VoiceWH
+    VapiTel --> VoiceWH
+
+    Security --> ChatAPI --> ChatSvc
+    VoiceWH --> ChatSvc
+    VoiceWH --> CalAPI
+    ChatSvc --> RAG
+    RAG --> Vector
+    RAG --> BM25
+    Vector --> Qdrant
+    BM25 --> Qdrant
+    Vector --> RRF
+    BM25 --> RRF
+    RRF --> Ground
+    Ground --> OpenAI
+    ChatSvc --> SQLite
+    CalAPI --> GCal
+
+    Resume --> BuildIndex
+    GitHub --> BuildIndex
+    BuildIndex -->|embed + upsert| Qdrant
+    OpenAI -.->|embeddings| BuildIndex
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full diagram.
+**Collections in Qdrant:** `resume` · `github_readmes` · `commits` · `projects`
+
+**Voice tools (webhook):** `ask_knowledge_base` · `get_available_slots` · `book_meeting` · `cancel_meeting` · `reschedule_meeting`
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for data-flow detail.
 
 ## Project Structure
 

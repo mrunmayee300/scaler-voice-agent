@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Phone, PhoneOff, Mic, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ensureBackendReady } from "@/lib/backend";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -10,15 +11,12 @@ type VoiceConfig = {
   publicKey: string;
   assistantId: string;
   candidateName: string;
+  phoneNumber?: string;
   configured: boolean;
 };
 
 async function warmBackend(): Promise<void> {
-  try {
-    await fetch(`${API_URL}/health`, { cache: "no-store" });
-  } catch {
-    /* best-effort wake-up for Render free-tier cold starts */
-  }
+  await ensureBackendReady(3);
 }
 
 function isBenignVapiError(e: unknown): boolean {
@@ -52,13 +50,15 @@ export function VoiceAgent() {
       };
 
       try {
-        const res = await fetch(`${API_URL}/api/voice/client-config`);
+        await ensureBackendReady(2);
+        const res = await fetch(`${API_URL}/api/voice/client-config`, { cache: "no-store" });
         if (res.ok) {
           const data = (await res.json()) as VoiceConfig;
           const merged: VoiceConfig = {
             publicKey: data.publicKey || envFallback.publicKey,
             assistantId: data.assistantId || envFallback.assistantId,
             candidateName: data.candidateName || envFallback.candidateName,
+            phoneNumber: data.phoneNumber,
             configured: Boolean(
               (data.publicKey || envFallback.publicKey) &&
                 (data.assistantId || envFallback.assistantId)
@@ -155,8 +155,16 @@ export function VoiceAgent() {
       <div className="text-center">
         <h3 className="text-xl font-semibold mb-2">Voice Interview with {candidateName}</h3>
         <p className="text-muted-foreground text-sm max-w-md">
-          Start a voice conversation. Ask about experience, projects, or schedule an interview.
-          First call may take up to a minute while the server wakes up.
+          Start a voice conversation in your browser, or call{" "}
+          {config.phoneNumber ? (
+            <a href={`tel:${config.phoneNumber}`} className="text-primary underline">
+              {config.phoneNumber}
+            </a>
+          ) : (
+            "your Vapi phone number"
+          )}
+          . Ask about experience, projects, or schedule an interview. First call may take up to a
+          minute while the server wakes up.
         </p>
       </div>
 

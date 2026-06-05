@@ -72,8 +72,9 @@ async def compute_confidence(
     # Score component: RRF/BM25 scores are ~0.01-0.05; cross-encoder scores are ~-10 to +10
     top_score = max(c.score for c in chunks)
     if top_score <= 1.0:
-        # Reciprocal rank fusion scores (no cross-encoder reranker installed)
-        rerank_component = min(1.0, max(0.0, top_score / 0.035))
+        # RRF top hits are typically ~0.016 (rank 0); using 0.035 was too harsh and
+        # caused refusals on valid paraphrases like "What are your skills?"
+        rerank_component = min(1.0, max(0.0, top_score / 0.016))
     else:
         rerank_component = min(1.0, max(0.0, (top_score + 5) / 10))
 
