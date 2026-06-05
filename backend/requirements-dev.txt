@@ -1,0 +1,12 @@
+# Optional: tests + evals — install only when needed
+-r requirements-core.txt
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+langfuse==2.57.0
+gitpython==3.1.43
+aiohttp==3.11.10
+
+# Heavy eval stack — skip unless running evals/run_evals.py with Ragas
+# ragas==0.2.8
+# datasets==3.2.0

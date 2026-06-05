@@ -1,0 +1,4 @@
+# Optional: cross-encoder reranker (~2GB download, needs Python 3.11/3.12)
+# Install AFTER requirements-core.txt:
+#   pip install -r requirements-ml.txt
+sentence-transformers==3.3.1

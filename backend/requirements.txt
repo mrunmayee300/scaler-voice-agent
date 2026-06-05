@@ -1,0 +1,61 @@
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.18
+sse-starlette==2.1.3
+
+# Config & validation
+pydantic==2.10.3
+pydantic-settings==2.6.1
+python-dotenv==1.0.1
+
+# LLM & embeddings
+openai==1.57.2
+tiktoken==0.8.0
+
+# Vector DB
+qdrant-client==1.12.1
+
+# Retrieval
+rank-bm25==0.2.2
+sentence-transformers==3.3.1
+numpy==1.26.4
+
+# RAG evaluation
+ragas==0.2.8
+datasets==3.2.0
+
+# Timezones (required on Windows for ZoneInfo)
+tzdata
+
+# Google Calendar
+google-api-python-client==2.154.0
+google-auth==2.37.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.1
+
+# Database
+sqlalchemy[asyncio]==2.0.36
+aiosqlite==0.20.0
+
+# HTTP
+httpx==0.28.1
+aiohttp==3.11.10
+
+# Security
+slowapi==0.1.9
+
+# Observability
+langfuse==2.57.0
+structlog==24.4.0
+
+# Ingestion (shared)
+pypdf==5.1.0
+gitpython==3.1.43
+langchain-text-splitters==0.3.2
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+httpx==0.28.1
