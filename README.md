@@ -147,6 +147,4 @@ python evals/run_evals.py
 | Observability | Langfuse, Structlog |
 | Evaluation | Ragas, pytest |
 
-## License
 
-MIT
