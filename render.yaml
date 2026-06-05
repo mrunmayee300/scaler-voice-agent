@@ -1,0 +1,76 @@
+# Render Blueprint — free tier backend
+# Dashboard → New → Blueprint → connect this repo
+# Or create Web Service manually using these settings.
+
+services:
+  - type: web
+    name: voice-assistant-api
+    # Docker pins Python 3.11 — native Render runtime defaults to 3.14 and breaks pydantic
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: OPENAI_MODEL
+        value: gpt-4o
+      - key: OPENAI_EMBEDDING_MODEL
+        value: text-embedding-3-large
+      - key: QDRANT_COLLECTION_PREFIX
+        value: candidate
+      - key: RETRIEVAL_TOP_K
+        value: "10"
+      - key: RERANK_TOP_K
+        value: "5"
+      - key: CONFIDENCE_THRESHOLD
+        value: "0.55"
+      - key: MEETING_DURATION_MINUTES
+        value: "30"
+      - key: MEETING_BUFFER_MINUTES
+        value: "15"
+      - key: BUSINESS_HOURS_START
+        value: "8"
+      - key: BUSINESS_HOURS_END
+        value: "20"
+      - key: LANGFUSE_ENABLED
+        value: "false"
+      - key: GOOGLE_CREDENTIALS_PATH
+        value: /etc/secrets/google-service-account.json
+      - key: GOOGLE_CALENDAR_ID
+        sync: false
+      - key: GOOGLE_DELEGATED_USER
+        value: ""
+      - key: CANDIDATE_NAME
+        sync: false
+      - key: CANDIDATE_EMAIL
+        sync: false
+      - key: CANDIDATE_TIMEZONE
+        value: Asia/Kolkata
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: BACKEND_CORS_ORIGINS
+        sync: false
+      - key: VAPI_API_KEY
+        sync: false
+      - key: VAPI_ASSISTANT_ID
+        sync: false
+      - key: VAPI_WEBHOOK_SECRET
+        sync: false
+      - key: GITHUB_USERNAME
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPOS
+        sync: false
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./data/conversations.db
