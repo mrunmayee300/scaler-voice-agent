@@ -83,6 +83,7 @@ class Settings(BaseSettings):
 
     # Vapi
     vapi_api_key: str = Field(default="", alias="VAPI_API_KEY")
+    vapi_public_key: str = Field(default="", alias="VAPI_PUBLIC_KEY")
     vapi_assistant_id: str = Field(default="", alias="VAPI_ASSISTANT_ID")
     vapi_webhook_secret: str = Field(default="", alias="VAPI_WEBHOOK_SECRET")
 

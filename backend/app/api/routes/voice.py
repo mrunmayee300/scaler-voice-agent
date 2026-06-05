@@ -46,3 +46,15 @@ async def vapi_webhook(request: Request):
 async def vapi_config():
     """Return recommended Vapi assistant configuration for setup."""
     return get_vapi_assistant_config()
+
+
+@router.get("/client-config")
+async def vapi_client_config():
+    """Public Vapi keys for the browser voice widget (safe to expose)."""
+    settings = get_settings()
+    return {
+        "publicKey": settings.vapi_public_key,
+        "assistantId": settings.vapi_assistant_id,
+        "candidateName": settings.candidate_name,
+        "configured": bool(settings.vapi_public_key and settings.vapi_assistant_id),
+    }
