@@ -125,7 +125,12 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> List[str]:
-        return [o.strip() for o in self.backend_cors_origins.split(",") if o.strip()]
+        origins = []
+        for o in self.backend_cors_origins.split(","):
+            origin = o.strip().rstrip("/")
+            if origin:
+                origins.append(origin)
+        return origins
 
     @property
     def collections(self) -> dict[str, str]:

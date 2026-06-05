@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
   // Static export — reliable on Vercel when monorepo root-dir/output settings drift
   output: "export",
   trailingSlash: true,
+  // Inline NEXT_PUBLIC_* at build time (required for static export on Vercel)
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_VAPI_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY,
+    NEXT_PUBLIC_VAPI_ASSISTANT_ID: process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID,
+    NEXT_PUBLIC_CANDIDATE_NAME: process.env.NEXT_PUBLIC_CANDIDATE_NAME,
+  },
 };
 
 export default nextConfig;

@@ -27,9 +27,13 @@ export function VoiceAgent() {
       });
       instance.on("speech-start", () => setStatus("listening"));
       instance.on("speech-end", () => setStatus("connected"));
-      instance.on("error", (e) => {
+      instance.on("error", (e: unknown) => {
         console.error("Vapi error:", e);
-        setStatus("error");
+        const msg =
+          e && typeof e === "object" && "message" in e
+            ? String((e as { message?: string }).message)
+            : "Voice connection failed";
+        setStatus(`error: ${msg}`);
       });
       setVapi(instance);
     });
@@ -47,12 +51,15 @@ export function VoiceAgent() {
     vapi?.stop();
   };
 
-  if (!publicKey) {
+  if (!publicKey || !assistantId) {
     return (
       <div className="text-center p-8 text-muted-foreground">
         <Mic className="h-12 w-12 mx-auto mb-4 opacity-50" />
         <p>Voice agent requires Vapi configuration.</p>
-        <p className="text-sm mt-2">Set NEXT_PUBLIC_VAPI_PUBLIC_KEY in .env</p>
+        <p className="text-sm mt-2">
+          Set NEXT_PUBLIC_VAPI_PUBLIC_KEY and NEXT_PUBLIC_VAPI_ASSISTANT_ID in Vercel
+          env vars, then redeploy.
+        </p>
       </div>
     );
   }
