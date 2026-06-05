@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Phone, PhoneOff, Mic, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -13,41 +13,69 @@ type VoiceConfig = {
   configured: boolean;
 };
 
+async function warmBackend(): Promise<void> {
+  try {
+    await fetch(`${API_URL}/health`, { cache: "no-store" });
+  } catch {
+    /* best-effort wake-up for Render free-tier cold starts */
+  }
+}
+
+function isBenignVapiError(e: unknown): boolean {
+  const text = JSON.stringify(e).toLowerCase();
+  return text.includes("meeting has ended") || text.includes("call ended");
+}
+
 export function VoiceAgent() {
   const [vapi, setVapi] = useState<InstanceType<typeof import("@vapi-ai/web").default> | null>(null);
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState("idle");
   const [config, setConfig] = useState<VoiceConfig | null>(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
+  const [starting, setStarting] = useState(false);
+
+  useEffect(() => {
+    warmBackend();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadConfig() {
-      // Prefer runtime fetch from backend (works on Vercel static export)
+      const envFallback: VoiceConfig = {
+        publicKey: process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "",
+        assistantId: process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || "",
+        candidateName: process.env.NEXT_PUBLIC_CANDIDATE_NAME || "Candidate",
+        configured: Boolean(
+          process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY && process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID
+        ),
+      };
+
       try {
         const res = await fetch(`${API_URL}/api/voice/client-config`);
         if (res.ok) {
           const data = (await res.json()) as VoiceConfig;
-          if (!cancelled && data.configured) {
-            setConfig(data);
+          const merged: VoiceConfig = {
+            publicKey: data.publicKey || envFallback.publicKey,
+            assistantId: data.assistantId || envFallback.assistantId,
+            candidateName: data.candidateName || envFallback.candidateName,
+            configured: Boolean(
+              (data.publicKey || envFallback.publicKey) &&
+                (data.assistantId || envFallback.assistantId)
+            ),
+          };
+          if (!cancelled) {
+            setConfig(merged);
             setLoadingConfig(false);
             return;
           }
         }
       } catch {
-        /* fall through to build-time env */
+        /* fall through */
       }
 
-      const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "";
-      const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || "";
       if (!cancelled) {
-        setConfig({
-          publicKey,
-          assistantId,
-          candidateName: process.env.NEXT_PUBLIC_CANDIDATE_NAME || "Candidate",
-          configured: Boolean(publicKey && assistantId),
-        });
+        setConfig(envFallback);
         setLoadingConfig(false);
       }
     }
@@ -65,29 +93,33 @@ export function VoiceAgent() {
       instance.on("call-start", () => {
         setConnected(true);
         setStatus("connected");
+        setStarting(false);
       });
       instance.on("call-end", () => {
         setConnected(false);
         setStatus("idle");
+        setStarting(false);
       });
       instance.on("speech-start", () => setStatus("listening"));
       instance.on("speech-end", () => setStatus("connected"));
       instance.on("error", (e: unknown) => {
+        if (isBenignVapiError(e)) return;
         console.error("Vapi error:", e);
-        const msg =
-          e && typeof e === "object" && "message" in e
-            ? String((e as { message?: string }).message)
-            : "Voice connection failed";
-        setStatus(`error: ${msg}`);
+        setStarting(false);
+        setStatus("error — try again in a moment");
       });
       setVapi(instance);
     });
   }, [config?.publicKey]);
 
-  const startCall = () => {
+  const startCall = useCallback(async () => {
     if (!vapi || !config?.assistantId) return;
+    setStarting(true);
+    setStatus("warming up server…");
+    await warmBackend();
+    setStatus("connecting…");
     vapi.start(config.assistantId);
-  };
+  }, [vapi, config?.assistantId]);
 
   const endCall = () => {
     vapi?.stop();
@@ -124,7 +156,7 @@ export function VoiceAgent() {
         <h3 className="text-xl font-semibold mb-2">Voice Interview with {candidateName}</h3>
         <p className="text-muted-foreground text-sm max-w-md">
           Start a voice conversation. Ask about experience, projects, or schedule an interview.
-          Supports interruptions and natural dialogue.
+          First call may take up to a minute while the server wakes up.
         </p>
       </div>
 
@@ -141,9 +173,13 @@ export function VoiceAgent() {
       <p className="text-sm text-muted-foreground capitalize">Status: {status}</p>
 
       {!connected ? (
-        <Button size="lg" onClick={startCall} className="gap-2">
-          <Phone className="h-5 w-5" />
-          Start Voice Call
+        <Button size="lg" onClick={startCall} disabled={starting} className="gap-2">
+          {starting ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Phone className="h-5 w-5" />
+          )}
+          {starting ? "Starting…" : "Start Voice Call"}
         </Button>
       ) : (
         <Button size="lg" variant="outline" onClick={endCall} className="gap-2">

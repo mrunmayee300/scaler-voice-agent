@@ -33,6 +33,7 @@ def main() -> None:
         "server": {
             "url": config["serverUrl"],
             "secret": settings.vapi_webhook_secret or None,
+            "timeoutSeconds": 90,
         },
     }
 

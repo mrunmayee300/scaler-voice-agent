@@ -244,7 +244,11 @@ def get_vapi_assistant_config() -> Dict[str, Any]:
     webhook = f"{settings.backend_url}/api/voice/webhook"
     tools_with_server = []
     for tool in VAPI_TOOLS:
-        entry = {**tool, "async": False, "server": {"url": webhook}}
+        entry = {
+            **tool,
+            "async": False,
+            "server": {"url": webhook, "timeoutSeconds": 90},
+        }
         tools_with_server.append(entry)
 
     return {
